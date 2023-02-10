@@ -11,7 +11,6 @@ import (
 func main() {
 	config.Carregar()
 
-	fmt.Println("Rodando API!")
 	r := router.Gerar()
 
 	fmt.Printf("Listening on Port %d", config.Porta)
