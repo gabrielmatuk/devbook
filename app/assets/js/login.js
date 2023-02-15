@@ -1,7 +1,7 @@
 $('#login').on('submit', fazerLogin)
 
-function fazerLogin(event) {
-  event.preventDefault()
+function fazerLogin(evento) {
+  evento.preventDefault()
 
   $.ajax({
     url: '/login',
@@ -12,11 +12,9 @@ function fazerLogin(event) {
     },
   })
     .done(function () {
-      console.log('DEU CERTO')
       window.location = '/home'
     })
-    .fail(function (e) {
-      console.log(e)
-      alert('Usuário ou senha inválidos!')
+    .fail(function () {
+      Swal.fire('Ops...', 'Usuário ou senha incorretos!', 'error')
     })
 }
