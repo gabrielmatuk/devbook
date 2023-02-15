@@ -12,9 +12,11 @@ function fazerLogin(event) {
     },
   })
     .done(function () {
+      console.log('DEU CERTO')
       window.location = '/home'
     })
-    .fail(function () {
+    .fail(function (e) {
+      console.log(e)
       alert('Usuário ou senha inválidos!')
     })
 }
