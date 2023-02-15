@@ -15,6 +15,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
+// CriarPublicacao adiciona uma nova publicação no banco de dados
 func CriarPublicacao(w http.ResponseWriter, r *http.Request) {
 	usuarioID, erro := autenticacao.ExtrairUsuarioID(r)
 	if erro != nil {
@@ -48,9 +49,8 @@ func CriarPublicacao(w http.ResponseWriter, r *http.Request) {
 	}
 	defer db.Close()
 
-	repositorios := repositorios.NovoRepositorioDePublicacoes(db)
-
-	publicacao.ID, erro = repositorios.Criar(publicacao)
+	repositorio := repositorios.NovoRepositorioDePublicacoes(db)
+	publicacao.ID, erro = repositorio.Criar(publicacao)
 	if erro != nil {
 		respostas.Erro(w, http.StatusInternalServerError, erro)
 		return
@@ -58,12 +58,15 @@ func CriarPublicacao(w http.ResponseWriter, r *http.Request) {
 
 	respostas.JSON(w, http.StatusCreated, publicacao)
 }
+
+// BuscarPublicacoes traz as publicações que apareceriam no feed do usuário
 func BuscarPublicacoes(w http.ResponseWriter, r *http.Request) {
 	usuarioID, erro := autenticacao.ExtrairUsuarioID(r)
 	if erro != nil {
 		respostas.Erro(w, http.StatusUnauthorized, erro)
 		return
 	}
+
 	db, erro := banco.Conectar()
 	if erro != nil {
 		respostas.Erro(w, http.StatusInternalServerError, erro)
@@ -77,12 +80,11 @@ func BuscarPublicacoes(w http.ResponseWriter, r *http.Request) {
 		respostas.Erro(w, http.StatusInternalServerError, erro)
 		return
 	}
-	if publicacoes == nil {
-		respostas.Erro(w, http.StatusNotFound, errors.New("não tem publicação"))
-	}
+
 	respostas.JSON(w, http.StatusOK, publicacoes)
 }
 
+// BuscarPublicacao traz uma única publicação
 func BuscarPublicacao(w http.ResponseWriter, r *http.Request) {
 	parametros := mux.Vars(r)
 	publicacaoID, erro := strconv.ParseUint(parametros["publicacaoId"], 10, 64)
@@ -90,6 +92,7 @@ func BuscarPublicacao(w http.ResponseWriter, r *http.Request) {
 		respostas.Erro(w, http.StatusBadRequest, erro)
 		return
 	}
+
 	db, erro := banco.Conectar()
 	if erro != nil {
 		respostas.Erro(w, http.StatusInternalServerError, erro)
@@ -106,6 +109,8 @@ func BuscarPublicacao(w http.ResponseWriter, r *http.Request) {
 
 	respostas.JSON(w, http.StatusOK, publicacao)
 }
+
+// AtualizarPublicacao altera os dados de uma publicação
 func AtualizarPublicacao(w http.ResponseWriter, r *http.Request) {
 	usuarioID, erro := autenticacao.ExtrairUsuarioID(r)
 	if erro != nil {
@@ -135,7 +140,7 @@ func AtualizarPublicacao(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if publicacaoSalvaNoBanco.AutorID != usuarioID {
-		respostas.Erro(w, http.StatusForbidden, errors.New("não é possível atualizar publicação de outra pessoa"))
+		respostas.Erro(w, http.StatusForbidden, errors.New("não é possível atualizar uma publicação que não seja sua"))
 		return
 	}
 
@@ -160,8 +165,11 @@ func AtualizarPublicacao(w http.ResponseWriter, r *http.Request) {
 		respostas.Erro(w, http.StatusInternalServerError, erro)
 		return
 	}
+
 	respostas.JSON(w, http.StatusNoContent, nil)
 }
+
+// DeletarPublicacao exclui os dados de uma publicação
 func DeletarPublicacao(w http.ResponseWriter, r *http.Request) {
 	usuarioID, erro := autenticacao.ExtrairUsuarioID(r)
 	if erro != nil {
@@ -191,7 +199,7 @@ func DeletarPublicacao(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if publicacaoSalvaNoBanco.AutorID != usuarioID {
-		respostas.Erro(w, http.StatusForbidden, errors.New("não é possível deletar a publicação de outra pessoa"))
+		respostas.Erro(w, http.StatusForbidden, errors.New("não é possível deletar uma publicação que não seja sua"))
 		return
 	}
 
@@ -203,6 +211,7 @@ func DeletarPublicacao(w http.ResponseWriter, r *http.Request) {
 	respostas.JSON(w, http.StatusNoContent, nil)
 }
 
+// BuscarPublicacoesPorUsuario traz todas as publicações de um usuário específico
 func BuscarPublicacoesPorUsuario(w http.ResponseWriter, r *http.Request) {
 	parametros := mux.Vars(r)
 	usuarioID, erro := strconv.ParseUint(parametros["usuarioId"], 10, 64)
@@ -225,13 +234,10 @@ func BuscarPublicacoesPorUsuario(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if publicacoes == nil {
-		respostas.Erro(w, http.StatusNotFound, errors.New("usuário não possui nenhuma publicação"))
-		return
-	}
 	respostas.JSON(w, http.StatusOK, publicacoes)
 }
 
+// CurtirPublicacao adiciona uma curtida na publicação
 func CurtirPublicacao(w http.ResponseWriter, r *http.Request) {
 	parametros := mux.Vars(r)
 	publicacaoID, erro := strconv.ParseUint(parametros["publicacaoId"], 10, 64)
@@ -248,14 +254,15 @@ func CurtirPublicacao(w http.ResponseWriter, r *http.Request) {
 	defer db.Close()
 
 	repositorio := repositorios.NovoRepositorioDePublicacoes(db)
-
 	if erro = repositorio.Curtir(publicacaoID); erro != nil {
 		respostas.Erro(w, http.StatusInternalServerError, erro)
 		return
 	}
+
 	respostas.JSON(w, http.StatusNoContent, nil)
 }
 
+// DescurtirPublicacao subtrai uma curtida na publicação
 func DescurtirPublicacao(w http.ResponseWriter, r *http.Request) {
 	parametros := mux.Vars(r)
 	publicacaoID, erro := strconv.ParseUint(parametros["publicacaoId"], 10, 64)
@@ -272,10 +279,10 @@ func DescurtirPublicacao(w http.ResponseWriter, r *http.Request) {
 	defer db.Close()
 
 	repositorio := repositorios.NovoRepositorioDePublicacoes(db)
-
 	if erro = repositorio.Descurtir(publicacaoID); erro != nil {
 		respostas.Erro(w, http.StatusInternalServerError, erro)
 		return
 	}
+
 	respostas.JSON(w, http.StatusNoContent, nil)
 }

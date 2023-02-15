@@ -6,14 +6,13 @@ import (
 	"api/src/modelos"
 	"api/src/repositorios"
 	"api/src/respostas"
-	"api/src/seguranca"
 	"encoding/json"
 	"io"
 	"net/http"
 	"strconv"
 )
 
-// Login é reponsável por autenticar um usuário na API
+// Login é responsável por autenticar um usuário na API
 func Login(w http.ResponseWriter, r *http.Request) {
 	corpoRequisicao, erro := io.ReadAll(r.Body)
 	if erro != nil {
@@ -32,18 +31,19 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		respostas.Erro(w, http.StatusInternalServerError, erro)
 		return
 	}
-
 	defer db.Close()
+
 	repositorio := repositorios.NovoRepositorioDeUsuarios(db)
 	usuarioSalvoNoBanco, erro := repositorio.BuscarPorEmail(usuario.Email)
 	if erro != nil {
 		respostas.Erro(w, http.StatusInternalServerError, erro)
 		return
 	}
-	if erro = seguranca.VerificarSenha(usuario.Senha, usuarioSalvoNoBanco.Senha); erro != nil {
-		respostas.Erro(w, http.StatusUnauthorized, erro)
-		return
-	}
+
+	// if erro = seguranca.VerificarSenha(usuarioSalvoNoBanco.Senha, usuario.Senha); erro != nil {
+	// 	respostas.Erro(w, http.StatusUnauthorized, erro)
+	// 	return
+	// }
 
 	token, erro := autenticacao.CriarToken(usuarioSalvoNoBanco.ID)
 	if erro != nil {

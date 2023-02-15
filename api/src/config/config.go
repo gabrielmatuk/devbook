@@ -10,12 +10,13 @@ import (
 )
 
 var (
-	//StringConexaoBanco é a string de conexão com o MySQL
+	// StringConexaoBanco é a string de conexão com o MySQL
 	StringConexaoBanco = ""
-	//Porta é onde a API vai estar rodando
+
+	// Porta onde a API vai estar rodando
 	Porta = 0
 
-	//SecretKey chave para autenticar o token
+	// SecretKey é a chave que vai ser usada para assinar o token
 	SecretKey []byte
 )
 
@@ -33,7 +34,9 @@ func Carregar() {
 	}
 
 	StringConexaoBanco = fmt.Sprintf("%s:%s@/%s?charset=utf8&parseTime=True&loc=Local",
-		os.Getenv("DB_USER"), os.Getenv("DB_PSWD"), os.Getenv("DB_DATABASE"),
+		os.Getenv("DB_USER"),
+		os.Getenv("DB_PSWD"),
+		os.Getenv("DB_DATABASE"),
 	)
 
 	SecretKey = []byte(os.Getenv("SECRET_KEY"))
