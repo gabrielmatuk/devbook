@@ -2,14 +2,16 @@ package main
 
 import (
 	"app/src/router"
+	"app/src/utils"
 	"fmt"
 	"log"
 	"net/http"
 )
 
 func main() {
-	fmt.Println("Rodando APP")
-
+	utils.CarregarTemplates()
 	r := router.Gerar()
+
+	fmt.Println("Rodando APP na porta 3000")
 	log.Fatal(http.ListenAndServe(":3000", r))
 }
